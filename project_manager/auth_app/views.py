@@ -49,6 +49,5 @@ def login_view(request):
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
-            'role': user.role
         })
     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
