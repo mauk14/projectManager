@@ -14,6 +14,6 @@ class Comment(models.Model):
     def user_has_access(self, user):
         return (
             user.is_superuser
-            or self.task.project.projectuser_set.filter(user=user, role__name__in=["creator", "manager"]).exists()
+            or self.task.project.projectuser_set.filter(user=user, role__in=["creator", "manager"]).exists()
             or self.task.assigned_to.filter(id=user.id).exists()
         )

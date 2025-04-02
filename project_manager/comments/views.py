@@ -15,7 +15,7 @@ class CommentAPIView(APIView):
     def get(self, request, task_id,comment_id=None):
         
         task = get_object_or_404(Task, id=task_id)
-        
+
         if not task.user_has_access(request.user):
             return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
         
@@ -44,7 +44,7 @@ class CommentAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, comment_id):
+    def delete(self, request, task_id, comment_id):
         comment = get_object_or_404(Comment, id=comment_id)
         user = request.user
 

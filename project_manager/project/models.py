@@ -16,10 +16,10 @@ class Project(models.Model):
         ProjectUser.objects.create(user=creator, project=self, role="creator")
 
     def has_creator_access(self, user):
-        return self.projectuser_set.filter(user=user, role__name="creator").exists()   
+        return self.projectuser_set.filter(user=user, role="creator").exists()   
 
     def has_manager_access(self, user):
-        return self.projectuser_set.filter(user=user, role__name="manager").exists()
+        return self.projectuser_set.filter(user=user, role="manager").exists()
  
 
 class ProjectUser(models.Model):

@@ -5,7 +5,7 @@ from project.models import ProjectUser
 class Task(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    due_date = models.DateTimeField()
+    due_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=50, choices=[
@@ -21,10 +21,10 @@ class Task(models.Model):
         return self.title
     
     def has_creator_access(self, user):
-        return self.project.projectuser_set.filter(user=user, project=self.project, role__name="creator").exists()
+        return self.project.projectuser_set.filter(user=user, project=self.project, role="creator").exists()
 
     def has_manager_access(self, user):
-        return self.project.projectuser_set.filter(user=user, project=self.project, role__name="manager").exists()
+        return self.project.projectuser_set.filter(user=user, project=self.project, role="manager").exists()
 
     def has_executor_access(self, user):
         return self.assigned_to.filter(id=user.id).exists()
