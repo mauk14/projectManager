@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'auth_app',
     'project',
     'task',
+    'comments',
 ]
 
 SIMPLE_JWT = {

@@ -1,6 +1,6 @@
 from django.db import models
+from project.models import ProjectUser
 
-# Create your models here.
 
 class Task(models.Model):
     title = models.CharField(max_length=255)
@@ -19,3 +19,22 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def has_creator_access(self, user):
+        return self.project.projectuser_set.filter(user=user, project=self.project, role__name="creator").exists()
+
+    def has_manager_access(self, user):
+        return self.project.projectuser_set.filter(user=user, project=self.project, role__name="manager").exists()
+
+    def has_executor_access(self, user):
+        return self.assigned_to.filter(id=user.id).exists()
+    
+    def user_has_access(self, user):
+       
+        if self.has_creator_access(user):
+            return True  
+        if self.has_manager_access(user):
+            return True  
+        if self.has_executor_access(user):
+            return True  
+        return False

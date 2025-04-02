@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserSerializer
 from rest_framework.decorators import api_view, permission_classes
 
-# Create your views here.
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
