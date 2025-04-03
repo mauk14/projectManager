@@ -8,11 +8,36 @@ from .models import Project, ProjectUser
 from auth_app.models import User
 from .serializers import ProjectSerializer
 from django.utils.timezone import now
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class ProjectView(APIView):
     permission_classes = [IsAuthenticated]
     
+    @swagger_auto_schema(
+        operation_description="Get project details",
+        manual_parameters=[
+            openapi.Parameter(
+                name="project_id",
+                in_=openapi.IN_PATH,
+                description="Project ID",
+                type=openapi.TYPE_INTEGER,
+            ),
+        ],
+        responses={
+            200: ProjectSerializer(),
+            403: openapi.Response(
+                description="Access denied",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Access denied"),
+                    },
+                ),
+            ),
+        }
+    )
     def get(self, request, project_id=None):
         if project_id:
             project = get_object_or_404(Project, id=project_id)
@@ -28,6 +53,32 @@ class ProjectView(APIView):
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
     
+
+    @swagger_auto_schema(
+        operation_description="Create a new project",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                description="JWT token format: Bearer <token>",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        request_body=ProjectSerializer,
+        responses={
+            201: ProjectSerializer(),
+            400: openapi.Response(
+                description="Bad request",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Invalid data"),
+                    },
+                ),
+            ),
+        }
+    )
     def post(self, request):
         serializer = ProjectSerializer(data=request.data)
 
@@ -38,6 +89,46 @@ class ProjectView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    @swagger_auto_schema(
+        operation_description="Update project details",
+        manual_parameters=[
+            openapi.Parameter(
+                name="project_id",
+                in_=openapi.IN_PATH,
+                description="Project ID",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                description="JWT token format: Bearer <token>",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        request_body=ProjectSerializer,
+        responses={
+            200: ProjectSerializer(),
+            400: openapi.Response(
+                description="Bad request",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Invalid data"),
+                    },
+                ),
+            ),
+            403: openapi.Response(
+                description="Access denied",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Access denied"),
+                    },
+                ),
+            ),
+        }
+    )
     def patch(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
 
@@ -68,7 +159,36 @@ class ProjectView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-    
+    @swagger_auto_schema(
+        operation_description="Delete a project",
+        manual_parameters=[
+            openapi.Parameter(
+                name="project_id",
+                in_=openapi.IN_PATH,
+                description="Project ID",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                description="JWT token format: Bearer <token>",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        responses={
+            204: openapi.Response(description="Project deleted"),
+            403: openapi.Response(
+                description="Access denied",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Access denied"),
+                    },
+                ),
+            ),
+        }
+    )
     def delete(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
 
@@ -81,6 +201,49 @@ class ProjectView(APIView):
 class ProjectTimeTrackingAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Get project time tracking information",
+        manual_parameters=[
+            openapi.Parameter(
+                name="project_id",
+                in_=openapi.IN_PATH,
+                description="Project ID",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                description="JWT token format: Bearer <token>",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Project time tracking information",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'name': openapi.Schema(type=openapi.TYPE_STRING, description="Project name"),
+                        'start_date': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, description="Project start date"),
+                        'end_date': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, description="Project end date"),
+                        'time_since_start': openapi.Schema(type=openapi.TYPE_NUMBER, format=openapi.FORMAT_FLOAT, description="Time since project started in seconds"),
+                        'time_since_end': openapi.Schema(type=openapi.TYPE_NUMBER, format=openapi.FORMAT_FLOAT, description="Time since project ended in seconds"),
+                        'time_remaining': openapi.Schema(type=openapi.TYPE_NUMBER, format=openapi.FORMAT_FLOAT, description="Time remaining until project ends in seconds"),
+                    },
+                ),
+            ),
+            403: openapi.Response(
+                description="Access denied",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Access denied"),
+                    },
+                ),
+            ),
+        }
+    )
     def get(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
         user = request.user

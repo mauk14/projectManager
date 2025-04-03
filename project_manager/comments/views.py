@@ -7,11 +7,52 @@ from .models import Comment
 from .serializers import CommentSerializer
 from django.shortcuts import get_object_or_404
 from task.models import Task
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class CommentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Get comments for a task or a specific comment",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                description="JWT token format: Bearer <token>",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                name="task_id",
+                in_=openapi.IN_PATH,
+                description="ID of the task",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+            openapi.Parameter(
+                name="comment_id",
+                in_=openapi.IN_PATH,
+                description="ID of the comment (optional)",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+
+        ],
+        responses={
+            200: CommentSerializer(many=True),
+            403: openapi.Response(
+                description="Access denied",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Access denied"),
+                    },
+                ),
+            ),
+        }
+    )
     def get(self, request, task_id,comment_id=None):
         
         task = get_object_or_404(Task, id=task_id)
@@ -28,6 +69,47 @@ class CommentAPIView(APIView):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
+    @swagger_auto_schema(
+        operation_description="Create a new comment for a task",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                description="JWT token format: Bearer <token>",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                name="task_id",
+                in_=openapi.IN_PATH,
+                description="ID of the task",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+        ],
+        request_body=CommentSerializer,
+        responses={
+            201: CommentSerializer(),
+            400: openapi.Response(
+                description="Bad request",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'text': openapi.Schema(type=openapi.TYPE_STRING, description="Comment text"),
+                    },
+                ),
+            ),
+            403: openapi.Response(
+                description="Access denied",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Access denied"),
+                    },
+                ),
+            ),
+        }
+    )
     def post(self, request, task_id):
         task = get_object_or_404(Task, id=task_id)
         user = request.user

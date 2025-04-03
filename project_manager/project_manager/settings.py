@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'project',
     'task',
     'comments',
+    'drf_yasg',
 ]
 
 SIMPLE_JWT = {
